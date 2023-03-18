@@ -1,0 +1,12 @@
+{
+	"extends": "../../tsconfig.json",
+	"compilerOptions": {
+		"module": "esnext",
+		"baseUrl": ".",
+		"paths": {
+			"@discord-bots/core/*": [
+				"../core/src/*"
+			]
+		}
+	}
+}

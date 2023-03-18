@@ -1,0 +1,21 @@
+{
+  "name": "@discord-bots/core",
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "test": "sst bind vitest",
+    "typecheck": "tsc -noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^18.14.2",
+    "aws-sdk": "^2.1338.0",
+    "discord.js": "^14.8.0",
+    "sst": "^2.0.39",
+    "vitest": "^0.29.1"
+  },
+  "dependencies": {
+    "discord-interactions": "^3.3.0",
+    "sst": "^2.0.39",
+    "zod": "^3.21.4"
+  }
+}

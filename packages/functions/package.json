@@ -1,0 +1,22 @@
+{
+  "name": "@discord-bots/functions",
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "test": "sst bind 'vitest'",
+    "typecheck": "tsc -noEmit"
+  },
+  "devDependencies": {
+    "@aws-sdk/types": "^3.292.0",
+    "@types/aws-lambda": "^8.10.111",
+    "@types/node": "^18.14.2",
+    "aws-sdk": "^2.1338.0",
+    "sst": "^2.0.39"
+  },
+  "dependencies": {
+    "discord-interactions": "^3.3.0",
+    "node-fetch": "^3.3.1",
+    "sst": "^2.0.39",
+    "zod": "^3.21.4"
+  }
+}
