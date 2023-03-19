@@ -11,6 +11,7 @@
     "@types/aws-lambda": "^8.10.111",
     "@types/node": "^18.14.2",
     "aws-sdk": "^2.1338.0",
+    "discord-api-types": "^0.37.36",
     "sst": "^2.0.39"
   },
   "dependencies": {

@@ -4,7 +4,10 @@ export function SnailyBot({ stack }: StackContext) {
 	const table = new Table(stack, "Birthdays", {
 		fields: {
 			userId: "string",
-			birthday: "string",
+			guildId: "string",
+			month: "string",
+			day: "string",
+			year: "string",
 		},
 		primaryIndex: { partitionKey: "userId" },
 	});
@@ -23,8 +26,9 @@ export function SnailyBot({ stack }: StackContext) {
 
 	const api = new Api(stack, "Api", {
 		routes: {
-			"POST /": "packages/functions/api.post",
-			"GET /register": "packages/functions/register-commands.handler",
+			"POST /": "packages/functions/api.main",
+			"GET /register": "packages/functions/register-commands.main",
+			"GET /birthday": "packages/functions/check-birthday-today.main",
 		},
 		defaults: {
 			function: {

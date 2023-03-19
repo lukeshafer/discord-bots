@@ -2,7 +2,7 @@ import { Config } from "sst/node/config";
 import { getCommandsForRegistration } from "@discord-bots/core/commands";
 import fetch from "node-fetch";
 
-export async function handler() {
+export async function main() {
 	const url = `https://discord.com/api/v10/applications/${Config.DISCORD_APPLICATION_ID}/commands`;
 
 	const commands = getCommandsForRegistration();

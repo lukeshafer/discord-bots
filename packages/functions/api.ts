@@ -1,25 +1,20 @@
+import { APIGatewayProxyEventV2, APIGatewayProxyHandlerV2 } from "aws-lambda";
+import { z } from "zod";
+import { executeCommand } from "@discord-bots/core/commands";
+import { Interaction } from "@discord-bots/core/interaction-client";
 import {
-	APIGatewayProxyEventV2, APIGatewayProxyHandlerV2
-} from "aws-lambda";
-import {
-	parseInteractionBody,
-	type Interaction,
-} from "@discord-bots/core/discord-types";
-
-import {
-	InteractionResponseType,
 	InteractionType,
-	verifyKey,
-} from "discord-interactions";
-import {
-	Config
-} from "sst/node/config";
+	InteractionResponseType,
+	APIInteraction,
+} from "discord-api-types/v10";
+import { verifyKey } from "discord-interactions";
+import { Config } from "sst/node/config";
 
-export const post: APIGatewayProxyHandlerV2 = async (event) => {
+export const main: APIGatewayProxyHandlerV2 = async (event) => {
 	const authorizationResult = handleAuthorization(event);
 	if (authorizationResult.shouldReturn) return authorizationResult.response;
 
-	let body: Interaction;
+	let body;
 	try {
 		body = parseInteractionBody(event.body!);
 	} catch (error) {
@@ -29,23 +24,33 @@ export const post: APIGatewayProxyHandlerV2 = async (event) => {
 		};
 	}
 
-	console.log(body);
-
 	switch (body.type) {
-		case InteractionType.PING:
+		case InteractionType.Ping:
 			return {
 				statusCode: 200,
 				body: JSON.stringify({
-					type: InteractionResponseType.PONG,
+					type: InteractionResponseType.Pong,
 				}),
 			};
 
-		case InteractionType.APPLICATION_COMMAND:
-			const command = body.data.name;
-			console.log(command);
-			return command;
+		case InteractionType.ApplicationCommand:
+			const interaction = new Interaction(body);
+
+			try {
+				await executeCommand(interaction);
+				return {
+					statusCode: 200,
+				};
+			} catch (error) {
+				console.error("An error occurred", error);
+				return {
+					statusCode: 500,
+					body: "An error occurred",
+				};
+			}
 
 		default:
+			console.log("Unhandled interaction", body);
 			return {
 				statusCode: 200,
 				body: "Unhandled interaction",
@@ -73,12 +78,8 @@ interface AuthorizeResultContinue {
 type AuthorizeResult = AuthorizeResultReturns | AuthorizeResultContinue;
 
 function handleAuthorization(event: APIGatewayProxyEventV2): AuthorizeResult {
-	const signature = event.headers[
-		"x-signature-ed25519"
-	];
-	const timestamp = event.headers[
-		"x-signature-timestamp"
-	];
+	const signature = event.headers["x-signature-ed25519"];
+	const timestamp = event.headers["x-signature-timestamp"];
 
 	if (!signature || !timestamp || !event.body)
 		return {
@@ -122,3 +123,17 @@ function handleAuthorization(event: APIGatewayProxyEventV2): AuthorizeResult {
 		shouldReturn: false,
 	};
 }
+
+export function parseInteractionBody(rawBody: string): APIInteraction {
+	const body = JSON.parse(rawBody);
+	const result = baseInteraction.parse(body);
+	return result as APIInteraction;
+}
+
+const baseInteraction = z
+	.object({
+		id: z.string(),
+		application_id: z.string(),
+		type: z.nativeEnum(InteractionType),
+	})
+	.passthrough();

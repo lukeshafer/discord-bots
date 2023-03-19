@@ -20,18 +20,20 @@ importers:
     specifiers:
       '@types/node': ^18.14.2
       aws-sdk: ^2.1338.0
+      discord-api-types: ^0.37.36
       discord-interactions: ^3.3.0
       discord.js: ^14.8.0
+      node-fetch: ^3.3.1
       sst: ^2.0.39
       vitest: ^0.29.1
-      zod: ^3.21.4
     dependencies:
       discord-interactions: 3.3.0
+      node-fetch: 3.3.1
       sst: 2.0.39
-      zod: 3.21.4
     devDependencies:
       '@types/node': 18.14.2
       aws-sdk: 2.1338.0
+      discord-api-types: 0.37.36
       discord.js: 14.8.0
       vitest: 0.29.1
 
@@ -41,6 +43,7 @@ importers:
       '@types/aws-lambda': ^8.10.111
       '@types/node': ^18.14.2
       aws-sdk: ^2.1338.0
+      discord-api-types: ^0.37.36
       discord-interactions: ^3.3.0
       node-fetch: ^3.3.1
       sst: ^2.0.39
@@ -55,6 +58,7 @@ importers:
       '@types/aws-lambda': 8.10.111
       '@types/node': 18.14.2
       aws-sdk: 2.1338.0
+      discord-api-types: 0.37.36
 
 packages:
 
