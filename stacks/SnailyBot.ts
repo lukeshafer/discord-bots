@@ -1,16 +1,16 @@
-import { Api, Table, Config, type StackContext } from "sst/constructs";
+import { DiscordEventBus } from "./EventBus";
+import {
+	Api,
+	Table,
+	Config,
+	Cron,
+	Function,
+	type StackContext,
+	use,
+} from "sst/constructs";
 
 export function SnailyBot({ stack }: StackContext) {
-	const table = new Table(stack, "Birthdays", {
-		fields: {
-			userId: "string",
-			guildId: "string",
-			month: "string",
-			day: "string",
-			year: "string",
-		},
-		primaryIndex: { partitionKey: "userId" },
-	});
+	const { eventBus } = use(DiscordEventBus);
 
 	const DISCORD_CLIENT_ID = new Config.Secret(stack, "DISCORD_CLIENT_ID");
 	const DISCORD_CLIENT_SECRET = new Config.Secret(
@@ -22,7 +22,41 @@ export function SnailyBot({ stack }: StackContext) {
 		stack,
 		"DISCORD_APPLICATION_ID"
 	);
+
 	const DISCORD_TOKEN = new Config.Secret(stack, "DISCORD_TOKEN");
+	const table = new Table(stack, "Birthdays", {
+		fields: {
+			userId: "string",
+			guildId: "string",
+			month: "string",
+			day: "string",
+			year: "string",
+		},
+		primaryIndex: { partitionKey: "userId" },
+	});
+
+	const checkBirthdayToday = new Cron(stack, "CheckBirthdayToday", {
+		// daily at 11am
+		schedule: "cron(0 16 * * ? *)",
+		//schedule: "cron(30 17 * * ? *)",
+		//schedule: "rate(5 minutes)",
+		job: "packages/functions/check-birthday-today.main",
+	});
+
+	checkBirthdayToday.bind([table, DISCORD_TOKEN, DISCORD_APPLICATION_ID]);
+
+	const discordApiHandler = new Function(stack, "DiscordApiHandler", {
+		handler: "packages/functions/discord-api-handler.main",
+		bind: [
+			table,
+			DISCORD_CLIENT_ID,
+			DISCORD_CLIENT_SECRET,
+			DISCORD_PUBLIC_KEY,
+			DISCORD_APPLICATION_ID,
+			DISCORD_TOKEN,
+			eventBus,
+		],
+	});
 
 	const api = new Api(stack, "Api", {
 		routes: {
@@ -32,14 +66,7 @@ export function SnailyBot({ stack }: StackContext) {
 		},
 		defaults: {
 			function: {
-				bind: [
-					table,
-					DISCORD_CLIENT_ID,
-					DISCORD_CLIENT_SECRET,
-					DISCORD_PUBLIC_KEY,
-					DISCORD_APPLICATION_ID,
-					DISCORD_TOKEN,
-				],
+				bind: [DISCORD_PUBLIC_KEY, discordApiHandler],
 			},
 		},
 	});
@@ -47,4 +74,12 @@ export function SnailyBot({ stack }: StackContext) {
 	stack.addOutputs({
 		ApiEndpoint: api.url,
 	});
+
+	return {
+		DISCORD_CLIENT_ID,
+		DISCORD_CLIENT_SECRET,
+		DISCORD_PUBLIC_KEY,
+		DISCORD_APPLICATION_ID,
+		DISCORD_TOKEN,
+	};
 }

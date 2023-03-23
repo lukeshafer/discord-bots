@@ -1,5 +1,7 @@
 import { SSTConfig } from "sst";
 import { SnailyBot } from "./stacks/SnailyBot";
+import { Minecraft } from "./stacks/Minecraft";
+import { DiscordEventBus } from "./stacks/EventBus";
 
 export default {
 	config(_input) {
@@ -9,6 +11,6 @@ export default {
 		};
 	},
 	stacks(app) {
-		app.stack(SnailyBot);
+		app.stack(DiscordEventBus).stack(SnailyBot).stack(Minecraft);
 	},
 } satisfies SSTConfig;

@@ -1,66 +1,52 @@
-import { APIGatewayProxyEventV2, APIGatewayProxyHandlerV2 } from "aws-lambda";
-import { z } from "zod";
-import { executeCommand } from "@discord-bots/core/commands";
-import { Interaction } from "@discord-bots/core/interaction-client";
 import {
-	InteractionType,
-	InteractionResponseType,
-	APIInteraction,
-} from "discord-api-types/v10";
+	type APIGatewayProxyEventV2,
+	type APIGatewayProxyHandlerV2,
+} from "aws-lambda";
+import type { APIInteraction } from "discord-api-types/v10";
 import { verifyKey } from "discord-interactions";
 import { Config } from "sst/node/config";
+import { Function } from "sst/node/function";
+import { Lambda } from "aws-sdk";
 
 export const main: APIGatewayProxyHandlerV2 = async (event) => {
 	const authorizationResult = handleAuthorization(event);
 	if (authorizationResult.shouldReturn) return authorizationResult.response;
 
-	let body;
-	try {
-		body = parseInteractionBody(event.body!);
-	} catch (error) {
+	const body = JSON.parse(event.body!) as APIInteraction;
+	if (!body?.id || !body?.application_id || !body?.type) {
 		return {
 			statusCode: 400,
 			body: "Invalid request body",
 		};
 	}
 
-	switch (body.type) {
-		case InteractionType.Ping:
-			return {
-				statusCode: 200,
-				body: JSON.stringify({
-					type: InteractionResponseType.Pong,
-				}),
-			};
+	await fetch(
+		new URL(
+			`https://discord.com/api/v10/interactions/${body.id}/${body.token}/callback`
+		),
+		{
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				type: body.type === 3 ? 6 : 5,
+				data: {
+					flags: 0,
+				},
+			}),
+		}
+	);
 
-		case InteractionType.ApplicationCommand:
-			const interaction = new Interaction(body);
+	const lambda = new Lambda();
+	await lambda
+		.invoke({
+			FunctionName: Function.DiscordApiHandler.functionName,
+			Payload: JSON.stringify({ body }),
+		})
+		.promise();
 
-			try {
-				await executeCommand(interaction);
-				return {
-					statusCode: 200,
-				};
-			} catch (error) {
-				console.error("An error occurred", error);
-				return {
-					statusCode: 500,
-					body: "An error occurred",
-				};
-			}
-
-		default:
-			console.log("Unhandled interaction", body);
-			return {
-				statusCode: 200,
-				body: "Unhandled interaction",
-			};
-	}
-
-	return {
-		statusCode: 200,
-		body: "Unhandled request",
-	};
+	return {};
 };
 
 interface AuthorizeResultReturns {
@@ -123,17 +109,3 @@ function handleAuthorization(event: APIGatewayProxyEventV2): AuthorizeResult {
 		shouldReturn: false,
 	};
 }
-
-export function parseInteractionBody(rawBody: string): APIInteraction {
-	const body = JSON.parse(rawBody);
-	const result = baseInteraction.parse(body);
-	return result as APIInteraction;
-}
-
-const baseInteraction = z
-	.object({
-		id: z.string(),
-		application_id: z.string(),
-		type: z.nativeEnum(InteractionType),
-	})
-	.passthrough();

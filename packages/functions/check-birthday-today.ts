@@ -1,59 +1,70 @@
 import { Table } from "sst/node/table";
 import { DynamoDB } from "aws-sdk";
+import { sendMessage } from "@discord-bots/core/discord-client";
 
 const dynamoDb = new DynamoDB.DocumentClient();
 
 export const main = async () => {
-	const scanParams: DynamoDB.DocumentClient.ScanInput = {
-		TableName: Table.Birthdays.tableName,
-	};
-
-	const results = await dynamoDb
-		.scan(scanParams)
-		.promise()
-		.then((res) => res.Items);
-
-	if (!results) return;
+	const tableData = await getBirthdaysFromDynamoDb();
+	if (!tableData) return;
 
 	const today = new Date();
-
-	const birthdays = results.filter((result) => {
+	const birthdays = tableData.filter((result) => {
 		const month = Number(result.month);
 		const day = Number(result.day);
 
 		return month === today.getMonth() + 1 && day === today.getDate();
 	});
 
-	console.log(birthdays);
 	if (birthdays.length === 0) return;
+
+	const message = getBirthdayMessageFromBirthdays(birthdays);
+	const result = await sendMessage({
+		channelId: "994091308488601623",
+		body: {
+			content: message,
+		},
+	});
+
+	console.log(result);
+};
+
+async function getBirthdaysFromDynamoDb() {
+	const scanParams: DynamoDB.DocumentClient.ScanInput = {
+		TableName: Table.Birthdays.tableName,
+	};
+
+	return dynamoDb
+		.scan(scanParams)
+		.promise()
+		.then((res) => res.Items);
+}
+
+function getBirthdayMessageFromBirthdays(birthdays: any[]): string {
+	const today = new Date();
 
 	if (birthdays.length === 1) {
 		const { userId, year } = birthdays[0];
+		let age = "";
+		if (year) {
+			const last = age ? age[age.length - 1] : "";
+			const suffix =
+				last === "1" ? "st" : last === "2" ? "nd" : last === "3" ? "rd" : "th";
+			age = `${String(today.getFullYear() - Number(year))}${suffix} `;
+		}
 
-		if (!year)
-			return {
-				statusCode: 200,
-				body: `HAPPY BIRTHDAY <@${userId}>!`,
-			};
-
-		const age = today.getFullYear() - Number(year);
-
-		return {
-			statusCode: 200,
-			body: `HAPPY BIRTHDAY <@${userId}> - ${age} years old!`,
-		};
+		const message = `Hey everyone, it's <@${userId}>'s ${age}birthday!!!`;
+		return message;
 	}
 
-	const message = birthdays.reduce((acc, birthday) => {
+	return birthdays.reduce((acc, birthday) => {
 		const { year, userId } = birthday;
-		if (!year) return `${acc} <@${userId}> \n`;
-		const age = today.getFullYear() - Number(year);
+		if (!year) return `${acc}Happy birthday <@${userId}>!\n`;
+		const age = String(today.getFullYear() - Number(year));
+		const last = age ? age[age.length - 1] : "";
+		const suffix =
+			last === "1" ? "st" : last === "2" ? "nd" : last === "3" ? "rd" : "th";
+		const msgAge = `${age}${suffix} `;
 		return `${acc} <@${userId}> - ${age} years old! \n`;
-	}, "HAPPY SHARED BIRTHDAY TO: \n");
-
-	console.log(message);
-	return {
-		statusCode: 200,
-		body: message,
-	};
-};
+	}, `Hey everyone! We have ${birthdays.length} birthdays today!!! \n`);
+}

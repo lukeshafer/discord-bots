@@ -1,11 +1,12 @@
 import { getbirthdays, setbirthday } from "./slash-commands/birthdays";
-import fetch from "node-fetch";
 import type { SlashCommandBuilder } from "discord.js";
-import type { Interaction } from "./interaction-client";
-import type { APIApplicationCommandInteraction } from "discord-api-types/v10";
-import { InteractionResponseType, MessageFlags } from "discord-api-types/v10";
+import type { Interaction } from "./discord-client";
+import {
+	InteractionResponseType,
+	type MessageFlags,
+} from "discord-api-types/v10";
 
-const commands = [getbirthdays, setbirthday] satisfies Command[];
+const commands = [getbirthdays, setbirthday]satisfies Command[];
 
 export function getCommandsForRegistration() {
 	return commands.map(({ data }) => data);

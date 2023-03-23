@@ -7,7 +7,7 @@ import {
 	MessageFlags,
 } from "discord.js";
 import type { Command } from "../commands";
-import { Interaction } from "../interaction-client";
+import { Interaction } from "../discord-client";
 
 const dynamoDb = new DynamoDB.DocumentClient();
 
@@ -121,13 +121,11 @@ export const setbirthday = {
 			},
 		};
 
-		const result = await dynamoDb.put(putParams).promise();
-
+		await dynamoDb.put(putParams).promise();
 		await deferPromise;
 		await interaction.editResponse({
-			content: `Set birthday for ${
-				interaction.interaction.member?.user.username
-			} to ${month}/${day}${year ? `/${year}` : ""}`,
+			content: `Set birthday for ${interaction.interaction.member?.user.username
+				} to ${month}/${day}${year ? `/${year}` : ""}`,
 			flags: MessageFlags.Ephemeral,
 		});
 	},
