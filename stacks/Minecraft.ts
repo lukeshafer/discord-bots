@@ -61,5 +61,6 @@ export function Minecraft({ stack, app }: StackContext) {
 		cluster,
 		service,
 		eventBus,
+		stage: app.stage,
 	});
 }

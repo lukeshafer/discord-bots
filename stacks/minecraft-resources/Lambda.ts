@@ -6,7 +6,7 @@ import {
 	PolicyDocument,
 	PolicyStatement,
 } from "aws-cdk-lib/aws-iam";
-import { Stack, Config, Api, EventBus, Function, use } from "sst/constructs";
+import { Stack, Config, EventBus, Function, use } from "sst/constructs";
 
 import { SnailyBot } from "../SnailyBot";
 
@@ -16,15 +16,14 @@ export function MinecraftLambda(
 		cluster: Cluster;
 		service: FargateService;
 		eventBus: EventBus;
+		stage: string;
 	}
 ) {
 	const { DISCORD_TOKEN } = use(SnailyBot);
 
-	const DISCORD_MESSAGE_ID = new Config.Parameter(stack, "DISCORD_MESSAGE_ID", {
-		value: "1088145191325667358",
-	});
 	const DISCORD_CHANNEL_ID = new Config.Parameter(stack, "DISCORD_CHANNEL_ID", {
-		value: "1088244529787830412",
+		value:
+			props.stage === "prod" ? "1088244529787830412" : "994091308488601623",
 	});
 
 	const lambdaRole = new Role(stack, "LambdaRole", {
@@ -64,7 +63,7 @@ export function MinecraftLambda(
 		stack,
 		"AnnounceServerStartingFunction",
 		{
-			bind: [DISCORD_MESSAGE_ID, DISCORD_CHANNEL_ID, DISCORD_TOKEN],
+			bind: [DISCORD_CHANNEL_ID, DISCORD_TOKEN],
 			handler: "packages/functions/minecraft.announceStarting",
 		}
 	);
@@ -73,7 +72,7 @@ export function MinecraftLambda(
 		stack,
 		"AnnounceServerReadyFunction",
 		{
-			bind: [DISCORD_MESSAGE_ID, DISCORD_CHANNEL_ID, DISCORD_TOKEN],
+			bind: [DISCORD_CHANNEL_ID, DISCORD_TOKEN],
 			handler: "packages/functions/minecraft.announceReady",
 		}
 	);
@@ -88,7 +87,7 @@ export function MinecraftLambda(
 		stack,
 		"AnnounceServerStoppingFunction",
 		{
-			bind: [DISCORD_MESSAGE_ID, DISCORD_CHANNEL_ID, DISCORD_TOKEN],
+			bind: [DISCORD_CHANNEL_ID, DISCORD_TOKEN],
 			handler: "packages/functions/minecraft.announceStopping",
 		}
 	);
@@ -97,7 +96,7 @@ export function MinecraftLambda(
 		stack,
 		"AnnounceServerStoppedFunction",
 		{
-			bind: [DISCORD_MESSAGE_ID, DISCORD_CHANNEL_ID, DISCORD_TOKEN],
+			bind: [DISCORD_CHANNEL_ID, DISCORD_TOKEN],
 			handler: "packages/functions/minecraft.announceStopped",
 		}
 	);

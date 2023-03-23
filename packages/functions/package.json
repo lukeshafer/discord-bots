@@ -12,13 +12,13 @@
     "@types/node": "^18.14.2",
     "aws-sdk": "^2.1338.0",
     "discord-api-types": "^0.37.36",
-    "sst": "^2.0.39"
+    "sst": "2.2.8"
   },
   "dependencies": {
     "@discordjs/builders": "^1.5.0",
     "discord-interactions": "^3.3.0",
     "node-fetch": "^3.3.1",
-    "sst": "^2.0.39",
+    "sst": "2.2.8",
     "zod": "^3.21.4"
   }
 }

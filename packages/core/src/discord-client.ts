@@ -7,6 +7,7 @@ import {
 	type APIInteraction,
 } from "discord-api-types/v10";
 import { Config } from "sst/node/config";
+import fetch from "node-fetch";
 
 export class Interaction<T extends APIInteraction> {
 	interaction;
@@ -86,8 +87,11 @@ export async function sendMessage(args: {
 			Authorization: tokenHeader,
 		},
 		body: JSON.stringify(args.body),
-	}).then((result) => {
-		if (!result.ok) throw new Error("Failed to send message");
+	}).then(async (result) => {
+		if (!result.ok) {
+			console.log(await result.text());
+			throw new Error("Failed to send message");
+		}
 		return result.json() as Promise<RESTPostAPIChannelMessageResult>;
 	});
 

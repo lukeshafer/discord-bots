@@ -7,6 +7,7 @@ import { verifyKey } from "discord-interactions";
 import { Config } from "sst/node/config";
 import { Function } from "sst/node/function";
 import { Lambda } from "aws-sdk";
+import fetch from "node-fetch";
 
 export const main: APIGatewayProxyHandlerV2 = async (event) => {
 	const authorizationResult = handleAuthorization(event);
@@ -14,9 +15,19 @@ export const main: APIGatewayProxyHandlerV2 = async (event) => {
 
 	const body = JSON.parse(event.body!) as APIInteraction;
 	if (!body?.id || !body?.application_id || !body?.type) {
+		console.log("Invalid request body", body);
 		return {
 			statusCode: 400,
 			body: "Invalid request body",
+		};
+	}
+
+	if (body.type === 1) {
+		return {
+			statusCode: 200,
+			body: JSON.stringify({
+				type: 1,
+			}),
 		};
 	}
 
