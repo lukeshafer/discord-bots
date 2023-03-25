@@ -2,17 +2,23 @@ import {
 	type APIGatewayProxyEventV2,
 	type APIGatewayProxyHandlerV2,
 } from "aws-lambda";
-import type { APIInteraction } from "discord-api-types/v10";
+import {
+	type APIInteraction,
+	InteractionResponseType,
+	InteractionType,
+} from "discord-api-types/v10";
 import { verifyKey } from "discord-interactions";
 import { Config } from "sst/node/config";
-import { Function } from "sst/node/function";
-import { Lambda } from "aws-sdk";
-import fetch from "node-fetch";
+import { EventBridge } from "aws-sdk";
+import { Interaction } from "@discord-bots/core/discord-client";
+import { executeCommand } from "@discord-bots/core/commands";
+import { EventBus } from "sst/node/event-bus";
 
 export const main: APIGatewayProxyHandlerV2 = async (event) => {
 	const authorizationResult = handleAuthorization(event);
 	if (authorizationResult.shouldReturn) return authorizationResult.response;
 
+	// parse and validate
 	const body = JSON.parse(event.body!) as APIInteraction;
 	if (!body?.id || !body?.application_id || !body?.type) {
 		console.log("Invalid request body", body);
@@ -22,42 +28,71 @@ export const main: APIGatewayProxyHandlerV2 = async (event) => {
 		};
 	}
 
-	if (body.type === 1) {
-		return {
-			statusCode: 200,
-			body: JSON.stringify({
-				type: 1,
-			}),
-		};
+	switch (body.type) {
+		case InteractionType.Ping:
+			return {
+				statusCode: 200,
+				body: JSON.stringify({
+					type: InteractionResponseType.Pong,
+				}),
+			};
+		case InteractionType.ApplicationCommand:
+			const interaction = new Interaction(body);
+
+			try {
+				await executeCommand(interaction);
+				return {
+					statusCode: 200,
+				};
+			} catch (error) {
+				console.error("An error occurred", error);
+				return {
+					statusCode: 500,
+					body: "An error occurred",
+				};
+			}
+			break;
+		case InteractionType.MessageComponent:
+			const componentInteraction = new Interaction(body);
+			if (
+				body.data.component_type === 2 &&
+				body.data.custom_id === "startServer"
+			) {
+				componentInteraction.editResponse({
+					content: body.member
+						? `<@${body.member.user.id}> is launching the server`
+						: "Launching the server",
+				});
+				console.log("Sending event to start server");
+				const eventBus = new EventBridge();
+
+				const result = await eventBus
+					.putEvents({
+						Entries: [
+							{
+								Source: "minecraft",
+								DetailType: "start",
+								Detail: JSON.stringify({
+									message: `Minecraft Server is starting`,
+								}),
+								EventBusName: EventBus.DiscordEventBus.eventBusName,
+							},
+						],
+					})
+					.promise();
+				console.log("Result: ", result);
+			}
+			return {
+				statusCode: 200,
+			};
+			break;
+		default:
+			console.log("Unhandled interaction", body);
+			return {
+				statusCode: 400,
+				body: "Unhandled interaction",
+			};
 	}
-
-	await fetch(
-		new URL(
-			`https://discord.com/api/v10/interactions/${body.id}/${body.token}/callback`
-		),
-		{
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({
-				type: body.type === 3 ? 6 : 5,
-				data: {
-					flags: 0,
-				},
-			}),
-		}
-	);
-
-	const lambda = new Lambda();
-	await lambda
-		.invoke({
-			FunctionName: Function.DiscordApiHandler.functionName,
-			Payload: JSON.stringify({ body }),
-		})
-		.promise();
-
-	return {};
 };
 
 interface AuthorizeResultReturns {

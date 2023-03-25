@@ -1,6 +1,7 @@
 import { Table } from "sst/node/table";
 import { DynamoDB } from "aws-sdk";
 import { sendMessage } from "@discord-bots/core/discord-client";
+import { Config } from "sst/node/config";
 
 const dynamoDb = new DynamoDB.DocumentClient();
 
@@ -18,20 +19,17 @@ export const main = async () => {
 
 	if (birthdays.length === 0) return;
 
-	const message = getBirthdayMessageFromBirthdays(birthdays);
-	const result = await sendMessage({
-		channelId: "994091308488601623",
+	await sendMessage({
+		channelId: Config.BIRTHDAY_ANNOUNCE_CHANNEL,
 		body: {
-			content: message,
+			content: getBirthdayMessageFromBirthdays(birthdays),
 		},
 	});
-
-	console.log(result);
 };
 
 async function getBirthdaysFromDynamoDb() {
 	const scanParams: DynamoDB.DocumentClient.ScanInput = {
-		TableName: Table.Birthdays.tableName,
+		TableName: Table.Users.tableName,
 	};
 
 	return dynamoDb
@@ -65,6 +63,6 @@ function getBirthdayMessageFromBirthdays(birthdays: any[]): string {
 		const suffix =
 			last === "1" ? "st" : last === "2" ? "nd" : last === "3" ? "rd" : "th";
 		const msgAge = `${age}${suffix} `;
-		return `${acc} <@${userId}> - ${age} years old! \n`;
+		return `${acc}Happy ${msgAge} birthday <@${userId}>! \n`;
 	}, `Hey everyone! We have ${birthdays.length} birthdays today!!! \n`);
 }

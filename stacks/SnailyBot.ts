@@ -4,7 +4,6 @@ import {
 	Table,
 	Config,
 	Cron,
-	Function,
 	type StackContext,
 	use,
 } from "sst/constructs";
@@ -24,7 +23,7 @@ export function SnailyBot({ stack }: StackContext) {
 	);
 
 	const DISCORD_TOKEN = new Config.Secret(stack, "DISCORD_TOKEN");
-	const table = new Table(stack, "Birthdays", {
+	const table = new Table(stack, "Users", {
 		fields: {
 			userId: "string",
 			guildId: "string",
@@ -36,27 +35,16 @@ export function SnailyBot({ stack }: StackContext) {
 	});
 
 	const checkBirthdayToday = new Cron(stack, "CheckBirthdayToday", {
-		// daily at 11am
 		schedule: "cron(0 16 * * ? *)",
-		//schedule: "cron(30 17 * * ? *)",
-		//schedule: "rate(5 minutes)",
 		job: "packages/functions/check-birthday-today.main",
 	});
 
-	checkBirthdayToday.bind([table, DISCORD_TOKEN, DISCORD_APPLICATION_ID]);
-
-	const discordApiHandler = new Function(stack, "DiscordApiHandler", {
-		handler: "packages/functions/discord-api-handler.main",
-		bind: [
-			table,
-			DISCORD_CLIENT_ID,
-			DISCORD_CLIENT_SECRET,
-			DISCORD_PUBLIC_KEY,
-			DISCORD_APPLICATION_ID,
-			DISCORD_TOKEN,
-			eventBus,
-		],
-	});
+	checkBirthdayToday.bind([
+		table,
+		DISCORD_TOKEN,
+		DISCORD_APPLICATION_ID,
+		new Config.Secret(stack, "BIRTHDAY_ANNOUNCE_CHANNEL"),
+	]);
 
 	const api = new Api(stack, "Api", {
 		routes: {
@@ -66,7 +54,15 @@ export function SnailyBot({ stack }: StackContext) {
 		},
 		defaults: {
 			function: {
-				bind: [DISCORD_PUBLIC_KEY, discordApiHandler],
+				bind: [
+					table,
+					DISCORD_CLIENT_ID,
+					DISCORD_CLIENT_SECRET,
+					DISCORD_PUBLIC_KEY,
+					DISCORD_APPLICATION_ID,
+					DISCORD_TOKEN,
+					eventBus,
+				],
 			},
 		},
 	});

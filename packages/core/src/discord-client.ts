@@ -9,19 +9,19 @@ import {
 import { Config } from "sst/node/config";
 import fetch from "node-fetch";
 
-export class Interaction<T extends APIInteraction> {
+export class Interaction<T extends APIInteraction = APIInteraction> {
 	interaction;
 	id;
 	token;
 	callbackUrl;
 	baseWebhookURL;
-	data;
+	data: T["data"];
 	deferred = false;
 	constructor(interaction: T) {
 		this.interaction = interaction;
 		this.id = interaction.id;
 		this.token = interaction.token;
-		this.data = interaction.data;
+		this.data = interaction.data as T["data"];
 		this.callbackUrl = `https://discord.com/api/v${GatewayVersion}/interactions/${this.id}/${this.token}/callback`;
 		this.baseWebhookURL = `https://discord.com/api/v${GatewayVersion}/webhooks/${Config.DISCORD_APPLICATION_ID}/${this.token}`;
 	}

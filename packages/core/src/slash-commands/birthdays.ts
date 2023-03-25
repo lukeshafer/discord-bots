@@ -5,6 +5,7 @@ import {
 	ApplicationCommandType,
 	SlashCommandBuilder,
 	MessageFlags,
+	APIApplicationCommandInteraction,
 } from "discord.js";
 import type { Command } from "../commands";
 import { Interaction } from "../discord-client";
@@ -19,7 +20,7 @@ export const getbirthdays = {
 		const deferPromise = interaction.defer(true);
 
 		const scanParams: DynamoDB.DocumentClient.ScanInput = {
-			TableName: Table.Birthdays.tableName,
+			TableName: Table.Users.tableName,
 		};
 
 		const results = await dynamoDb
@@ -50,7 +51,7 @@ export const getbirthdays = {
 
 export const setbirthday = {
 	data: new SlashCommandBuilder()
-		.setName("setbirthday")
+		.setName("setmybirthday")
 		.setDescription("Set your birthday")
 		.addIntegerOption((option) =>
 			option
@@ -66,9 +67,11 @@ export const setbirthday = {
 		.addIntegerOption((option) =>
 			option.setName("year").setDescription("Year").setRequired(false)
 		),
-	execute: async (interaction: Interaction) => {
+	execute: async (
+		interaction: Interaction<APIApplicationCommandInteraction>
+	) => {
 		if (
-			interaction.data.type !== ApplicationCommandType.ChatInput ||
+			interaction.data?.type !== ApplicationCommandType.ChatInput ||
 			!interaction.data.options ||
 			!interaction.interaction.member?.user
 		) {
@@ -112,7 +115,7 @@ export const setbirthday = {
 		}
 
 		const putParams: DynamoDB.DocumentClient.PutItemInput = {
-			TableName: Table.Birthdays.tableName,
+			TableName: Table.Users.tableName,
 			Item: {
 				userId: interaction.interaction.member.user.id,
 				month,

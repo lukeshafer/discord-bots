@@ -1,23 +1,26 @@
-import { getbirthdays, setbirthday } from "./slash-commands/birthdays";
+import { setbirthday } from "./slash-commands/birthdays";
 import type { SlashCommandBuilder } from "discord.js";
 import type { Interaction } from "./discord-client";
 import {
 	InteractionResponseType,
+	type APIApplicationCommandInteraction,
 	type MessageFlags,
 } from "discord-api-types/v10";
 
-const commands = [getbirthdays, setbirthday]satisfies Command[];
+const commands = [setbirthday]satisfies Command[];
 
 export function getCommandsForRegistration() {
 	return commands.map(({ data }) => data);
 }
 
-export async function executeCommand(interaction: Interaction) {
+export async function executeCommand(
+	interaction: Interaction<APIApplicationCommandInteraction>
+) {
 	const command = commands.find(
-		(command) => command.data.name === interaction.name
+		(command) => command.data.name === interaction.data.name
 	);
 	if (!command) {
-		throw new Error(`Command not found: ${interaction.name}`);
+		throw new Error(`Command not found: ${interaction.data.name}`);
 	}
 
 	return await command.execute(interaction);
@@ -25,7 +28,7 @@ export async function executeCommand(interaction: Interaction) {
 
 export interface Command {
 	data: Partial<SlashCommandBuilder>;
-	execute: (interaction: Interaction) => Promise<any>;
+	execute: (interaction: Interaction<any>) => Promise<any>;
 }
 
 interface InteractionResponseData {
