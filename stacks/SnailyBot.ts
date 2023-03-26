@@ -23,15 +23,15 @@ export function SnailyBot({ stack }: StackContext) {
 	);
 
 	const DISCORD_TOKEN = new Config.Secret(stack, "DISCORD_TOKEN");
-	const table = new Table(stack, "Users", {
+	const table = new Table(stack, "GuildUsers", {
 		fields: {
-			userId: "string",
 			guildId: "string",
+			userId: "string",
 			month: "string",
 			day: "string",
 			year: "string",
 		},
-		primaryIndex: { partitionKey: "userId" },
+		primaryIndex: { partitionKey: "guildId", sortKey: "userId" },
 	});
 
 	const checkBirthdayToday = new Cron(stack, "CheckBirthdayToday", {

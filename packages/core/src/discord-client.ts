@@ -4,12 +4,19 @@ import {
 	GatewayVersion,
 	type RESTPostAPIChannelMessageJSONBody,
 	type RESTPostAPIChannelMessageResult,
-	type APIInteraction,
+	type APIApplicationCommandInteraction,
+	type APIMessageComponentInteraction,
 } from "discord-api-types/v10";
 import { Config } from "sst/node/config";
 import fetch from "node-fetch";
+import { Table } from "sst/node/table";
+import { DynamoDB } from "aws-sdk";
 
-export class Interaction<T extends APIInteraction = APIInteraction> {
+export class Interaction<
+	T extends
+		| APIApplicationCommandInteraction
+		| APIMessageComponentInteraction = APIApplicationCommandInteraction
+> {
 	interaction;
 	id;
 	token;
@@ -42,7 +49,7 @@ export class Interaction<T extends APIInteraction = APIInteraction> {
 			}),
 		});
 
-		console.log("Result: ", result);
+		//console.log("Result: ", result);
 	}
 
 	async sendResponse(response: APIInteractionResponseCallbackData) {
@@ -57,8 +64,8 @@ export class Interaction<T extends APIInteraction = APIInteraction> {
 			}),
 		});
 
-		console.log("Result: ", result);
-		console.log("Result body: ", await result.text());
+		//console.log("Result: ", result);
+		//console.log("Result body: ", await result.text());
 	}
 
 	async editResponse(response: APIInteractionResponseCallbackData) {
@@ -121,4 +128,18 @@ export async function editMessage(args: {
 	});
 
 	return response;
+}
+
+export async function removeAbsentUsers(ids: string[], guildId: string) {
+	//const dynamodb = new DynamoDB();
+
+	ids.forEach(async (id) => {
+		const memberData = await fetch(
+			`https://discord.com/api/v${GatewayVersion}/guilds/${guildId}/members/${id}`
+		);
+
+		if (memberData.status === 404) {
+			console.log("Removing user", id);
+		} else console.log("User", id, "is still in the guild");
+	});
 }

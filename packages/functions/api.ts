@@ -21,7 +21,7 @@ export const main: APIGatewayProxyHandlerV2 = async (event) => {
 	// parse and validate
 	const body = JSON.parse(event.body!) as APIInteraction;
 	if (!body?.id || !body?.application_id || !body?.type) {
-		console.log("Invalid request body", body);
+		console.log("Invalid request body");
 		return {
 			statusCode: 400,
 			body: "Invalid request body",
@@ -80,7 +80,6 @@ export const main: APIGatewayProxyHandlerV2 = async (event) => {
 						],
 					})
 					.promise();
-				console.log("Result: ", result);
 			}
 			return {
 				statusCode: 200,

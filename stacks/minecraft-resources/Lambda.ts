@@ -56,7 +56,7 @@ export function MinecraftLambda(
 	const startServerFunction = new Function(stack, "StartServerFunction", {
 		bind: [CLUSTER_NAME, SERVICE_NAME],
 		role: lambdaRole,
-		handler: "packages/functions/minecraft.start",
+		handler: "packages/functions/minecraft/start-server.main",
 	});
 
 	const announceServerStartingFunction = new Function(
@@ -64,7 +64,7 @@ export function MinecraftLambda(
 		"AnnounceServerStartingFunction",
 		{
 			bind: [DISCORD_CHANNEL_ID, DISCORD_TOKEN],
-			handler: "packages/functions/minecraft.announceStarting",
+			handler: "packages/functions/minecraft/announce-starting.main",
 		}
 	);
 
@@ -73,14 +73,14 @@ export function MinecraftLambda(
 		"AnnounceServerReadyFunction",
 		{
 			bind: [DISCORD_CHANNEL_ID, DISCORD_TOKEN],
-			handler: "packages/functions/minecraft.announceReady",
+			handler: "packages/functions/minecraft/announce-ready.main",
 		}
 	);
 
 	const stopServerFunction = new Function(stack, "StopServerFunction", {
 		bind: [CLUSTER_NAME, SERVICE_NAME],
 		role: lambdaRole,
-		handler: "packages/functions/minecraft.stop",
+		handler: "packages/functions/minecraft/stop-server.main",
 	});
 
 	const announceServerStoppingFunction = new Function(
@@ -88,7 +88,7 @@ export function MinecraftLambda(
 		"AnnounceServerStoppingFunction",
 		{
 			bind: [DISCORD_CHANNEL_ID, DISCORD_TOKEN],
-			handler: "packages/functions/minecraft.announceStopping",
+			handler: "packages/functions/minecraft/announce-stopping.main",
 		}
 	);
 
@@ -97,7 +97,7 @@ export function MinecraftLambda(
 		"AnnounceServerStoppedFunction",
 		{
 			bind: [DISCORD_CHANNEL_ID, DISCORD_TOKEN],
-			handler: "packages/functions/minecraft.announceStopped",
+			handler: "packages/functions/minecraft/announce-stopped.main",
 		}
 	);
 
@@ -129,18 +129,4 @@ export function MinecraftLambda(
 			},
 		},
 	});
-
-	//const api = new Api(stack, "MinecraftAPI", {
-	//routes: {
-	//"POST /start": "packages/functions/minecraft.invokeStart",
-	//},
-	//defaults: {
-	//function: {
-	//bind: [props.eventBus],
-	//permissions: ["events"],
-	//},
-	//},
-	//});
-
-	//return { api };
 }

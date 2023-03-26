@@ -1,4 +1,4 @@
-import { setbirthday } from "./slash-commands/birthdays";
+import { setbirthday, getbirthdays } from "./slash-commands/birthdays";
 import type { SlashCommandBuilder } from "discord.js";
 import type { Interaction } from "./discord-client";
 import {
@@ -7,7 +7,7 @@ import {
 	type MessageFlags,
 } from "discord-api-types/v10";
 
-const commands = [setbirthday]satisfies Command[];
+const commands = [setbirthday, getbirthdays] satisfies Command[];
 
 export function getCommandsForRegistration() {
 	return commands.map(({ data }) => data);
