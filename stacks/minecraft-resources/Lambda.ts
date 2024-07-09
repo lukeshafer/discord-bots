@@ -17,13 +17,12 @@ export function MinecraftLambda(
 		service: FargateService;
 		eventBus: EventBus;
 		stage: string;
-	}
+	},
 ) {
 	const { DISCORD_TOKEN } = use(SnailyBot);
 
 	const DISCORD_CHANNEL_ID = new Config.Parameter(stack, "DISCORD_CHANNEL_ID", {
-		value:
-			props.stage === "prod" ? "1088244529787830412" : "994091308488601623",
+		value: "1259913410615971902",
 	});
 
 	const lambdaRole = new Role(stack, "LambdaRole", {
@@ -40,7 +39,7 @@ export function MinecraftLambda(
 		},
 		managedPolicies: [
 			ManagedPolicy.fromAwsManagedPolicyName(
-				"service-role/AWSLambdaBasicExecutionRole"
+				"service-role/AWSLambdaBasicExecutionRole",
 			),
 		],
 	});
@@ -65,7 +64,7 @@ export function MinecraftLambda(
 		{
 			bind: [DISCORD_CHANNEL_ID, DISCORD_TOKEN],
 			handler: "packages/functions/minecraft/announce-starting.main",
-		}
+		},
 	);
 
 	const announceServerReadyFunction = new Function(
@@ -74,7 +73,7 @@ export function MinecraftLambda(
 		{
 			bind: [DISCORD_CHANNEL_ID, DISCORD_TOKEN],
 			handler: "packages/functions/minecraft/announce-ready.main",
-		}
+		},
 	);
 
 	const stopServerFunction = new Function(stack, "StopServerFunction", {
@@ -89,7 +88,7 @@ export function MinecraftLambda(
 		{
 			bind: [DISCORD_CHANNEL_ID, DISCORD_TOKEN],
 			handler: "packages/functions/minecraft/announce-stopping.main",
-		}
+		},
 	);
 
 	const announceServerStoppedFunction = new Function(
@@ -98,7 +97,7 @@ export function MinecraftLambda(
 		{
 			bind: [DISCORD_CHANNEL_ID, DISCORD_TOKEN],
 			handler: "packages/functions/minecraft/announce-stopped.main",
-		}
+		},
 	);
 
 	props.eventBus.addRules(stack, {

@@ -24,7 +24,7 @@ export const main = async () => {
 			sign[1].start[1] === today.getDate() - 5 //  + 1
 	);
 
-	const guildId = tableData[0].guildId as string;
+	const guildId = tableData[0]?.guildId as string;
 
 	const userIds = tableData.map(({ userId }) => userId);
 

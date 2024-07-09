@@ -4,6 +4,7 @@ import { MinecraftVPC } from "./minecraft-resources/VPC";
 import { MinecraftECS } from "./minecraft-resources/ECS";
 import { MinecraftLambda } from "./minecraft-resources/Lambda";
 import { MinecraftRoute53 } from "./minecraft-resources/Route53";
+import { MinecraftEC2 } from "./minecraft-resources/EC2";
 import constants from "./constants";
 import { DiscordEventBus } from "./EventBus";
 
@@ -62,5 +63,12 @@ export function Minecraft({ stack, app }: StackContext) {
 		service,
 		eventBus,
 		stage: app.stage,
+	});
+
+	const { instance } = MinecraftEC2(stack, { vpc });
+
+	stack.addOutputs({
+		MinecraftDomain: `${SERVER_SUB_DOMAIN}.${constants.DOMAIN}`,
+    ServerManagerPublicIp: instance.instancePublicIp,
 	});
 }
