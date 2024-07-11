@@ -18,7 +18,7 @@ import {
 	ServicePrincipal,
 } from "aws-cdk-lib/aws-iam";
 import { RetentionDays } from "aws-cdk-lib/aws-logs";
-import { ServerConfig } from "../Minecraft";
+import { ServerConfig, VCConfig } from "../Minecraft";
 import type { Stack } from "sst/constructs";
 
 export function MinecraftECS(
@@ -32,6 +32,7 @@ export function MinecraftECS(
 		startupMin: string;
 		shutdownMin: string;
 		serverConfig: ServerConfig;
+    vcConfig: VCConfig;
 		serverSubDomain: string;
 		domain: string;
 		hostedZoneId: string;
@@ -137,6 +138,11 @@ export function MinecraftECS(
 					hostPort: props.serverConfig.port,
 					protocol: props.serverConfig.protocol,
 				},
+        {
+					containerPort: props.vcConfig.port,
+					hostPort: props.vcConfig.port,
+					protocol: props.vcConfig.protocol,
+        }
 			],
 			essential: false,
 			logging: props.serverConfig.debug
@@ -217,5 +223,5 @@ export function MinecraftECS(
 	serverPolicy.attachToRole(minecraftTaskRole);
 
 	fileSystem.connections.allowDefaultPortFrom(service.connections);
-	return { service, cluster };
+	return { service, cluster, fileSystem };
 }

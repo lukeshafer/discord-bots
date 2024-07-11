@@ -11,6 +11,7 @@ export function MinecraftVPC(
 	stack: Stack,
 	props: {
 		ingressRule: Port;
+    vcIngressRule: Port;
 	}
 ) {
 	const vpc = new Vpc(stack, "MinecraftVPC", {
@@ -33,6 +34,7 @@ export function MinecraftVPC(
 	});
 
 	securityGroup.addIngressRule(Peer.anyIpv4(), props.ingressRule);
+	securityGroup.addIngressRule(Peer.anyIpv4(), props.vcIngressRule);
 
 	return {
 		vpc,

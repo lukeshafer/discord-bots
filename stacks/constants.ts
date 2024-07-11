@@ -1,7 +1,7 @@
 export default {
 	VOLUME_NAME: "minecraft",
 	MINECRAFT_EDITION: "java",
-	PORT: 25565,
+	MC_PORT: 25565,
 	HOSTED_ZONE_ID: "Z026947811UUN3L0HCA12",
 	DOMAIN: "lksh.dev",
 	SERVER_SUB_DOMAIN: "minecraft",
@@ -11,4 +11,5 @@ export default {
 	SHUTDOWN_MIN: "20",
 	DEBUG: true,
 	IMAGE: "itzg/minecraft-server",
+	VC_PORT: 24454,
 } as const;

@@ -16,6 +16,12 @@ export interface ServerConfig {
 	ingressRule: ec2.Port;
 }
 
+export interface VCConfig {
+  port: number;
+	protocol: ecs.Protocol;
+	ingressRule: ec2.Port;
+}
+
 export function Minecraft({ stack, app }: StackContext) {
 	const { eventBus } = use(DiscordEventBus);
 
@@ -25,15 +31,22 @@ export function Minecraft({ stack, app }: StackContext) {
 			: `${app.stage}-${constants.SERVER_SUB_DOMAIN}`;
 
 	const config = {
-		port: constants.PORT,
+		port: constants.MC_PORT,
 		protocol: ecs.Protocol.TCP,
 		image: constants.IMAGE,
 		debug: constants.DEBUG,
-		ingressRule: ec2.Port.tcp(constants.PORT),
+		ingressRule: ec2.Port.tcp(constants.MC_PORT),
+	} satisfies ServerConfig;
+
+	const vcConfig = {
+		port: constants.VC_PORT,
+		protocol: ecs.Protocol.UDP,
+		ingressRule: ec2.Port.udp(constants.VC_PORT),
 	};
 
 	const { vpc, securityGroup } = MinecraftVPC(stack, {
 		ingressRule: config.ingressRule,
+		vcIngressRule: vcConfig.ingressRule,
 	});
 
 	const { subDomainZoneId } = MinecraftRoute53(stack, {
@@ -42,7 +55,7 @@ export function Minecraft({ stack, app }: StackContext) {
 		hostedZoneId: constants.HOSTED_ZONE_ID,
 	});
 
-	const { cluster, service } = MinecraftECS(stack, {
+	const { cluster, service, fileSystem } = MinecraftECS(stack, {
 		memorySize: constants.MEMORY_SIZE,
 		cpuSize: constants.CPU_SIZE,
 		vpc,
@@ -50,6 +63,7 @@ export function Minecraft({ stack, app }: StackContext) {
 		startupMin: constants.STARTUP_MIN,
 		shutdownMin: constants.SHUTDOWN_MIN,
 		serverConfig: config,
+    vcConfig,
 		subDomainHostedZoneId: subDomainZoneId,
 		serverSubDomain: SERVER_SUB_DOMAIN,
 		domain: constants.DOMAIN,
@@ -65,10 +79,10 @@ export function Minecraft({ stack, app }: StackContext) {
 		stage: app.stage,
 	});
 
-	const { instance } = MinecraftEC2(stack, { vpc });
+	MinecraftEC2(stack, { vpc, fileSystem });
 
 	stack.addOutputs({
 		MinecraftDomain: `${SERVER_SUB_DOMAIN}.${constants.DOMAIN}`,
-    ServerManagerPublicIp: instance.instancePublicIp,
+		//ServerManagerPublicIp: instance.instancePublicIp,
 	});
 }
