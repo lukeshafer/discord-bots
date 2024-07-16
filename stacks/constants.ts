@@ -8,7 +8,7 @@ export default {
 	MEMORY_SIZE: "4096",
 	CPU_SIZE: "2048",
 	STARTUP_MIN: "10",
-	SHUTDOWN_MIN: "20",
+	SHUTDOWN_MIN: "10",
 	DEBUG: true,
 	IMAGE: "itzg/minecraft-server",
 	VC_PORT: 24454,
